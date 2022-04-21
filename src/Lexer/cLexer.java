@@ -3,65 +3,220 @@ package Lexer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.LinkedList;
 
 public class cLexer
 {
-    private final LinkedList<cNode> oList;
+    private final cLinkedList oList;
     private final String m_sFilePath;
     public cLexer(String pFilePath)
     {
-        oList = new LinkedList<>();
+        oList = new cLinkedList();
         m_sFilePath = pFilePath;
     }
 
     public cLexer()
     {
-        oList = new LinkedList<>();
+        oList = new cLinkedList();
         m_sFilePath = "";
     }
 
-    public LinkedList<cNode> start() throws Exception
+    public cLinkedList getList()
     {
+        return oList;
+    }
+
+    public cLinkedList start() throws Exception
+    {
+        String message = "";
         if(m_sFilePath.trim().isEmpty())
         {
             throw new Exception("No File path Specified");
         }
 
         File oFile = new File(m_sFilePath);
-        FileReader oFileResder = new FileReader(oFile);
-        BufferedReader oBufferResder = new BufferedReader(oFileResder);
+        FileReader oFileReader = new FileReader(oFile);
+        BufferedReader oBufferReader = new BufferedReader(oFileReader);
 
         int data;
 
-        try
+        while ((data = oBufferReader.read()) != -1)
         {
-            while ((data = oBufferResder.read()) != -1)
+            char c = (char) data;
+
+            // Check if valid Char
+            if(!isValidChar(c))
             {
-                char c = (char) data;
+                message = "Lexical Error: "+ c +"(ascii: "+(int) c+") Invalid Character. Scanning aborted";
+                oList.add(new cNode( message, eNodeType.Error));
+                throw new Exception(message);
+            }else
+            {
+                if (c == '"')
+                {
+                    // Short String
+                    // System.out.println("+ short String");
+                    shortString(oBufferReader, c);
+                }
+                else if( (c >= 'a') && (c <= 'z'))
+                {
+                    // UDN or keyword
+                    // System.out.println("+ UDN/Keyword");
+                    readKeywordOrUDN(oBufferReader, c);
+                }
+            }
 
-                // Check if valid Char
-                if(!isValidChar(c))
+
+        }
+        return oList;
+    }
+
+    private void readKeywordOrUDN(BufferedReader oReader, char c) throws Exception
+    {
+        StringBuilder sStringBuilder = new StringBuilder(String.valueOf(c));
+        String message ="";
+        int iNextChar;
+        while(((iNextChar = oReader.read()) != -1) && isUDN((char) iNextChar))
+        {
+            c = (char) iNextChar;
+            sStringBuilder.append(c);
+        }
+        eNodeType type = eNodeType.UserDefinedName;
+        if(isKeyword(String.valueOf(sStringBuilder)))
+        {
+            oList.add(String.valueOf(sStringBuilder), eNodeType.Keyword);
+        }
+        else
+        {
+
+            oList.add(String.valueOf(sStringBuilder), eNodeType.UserDefinedName);
+        }
+        if(c != (char) iNextChar)
+        {
+            c = (char) iNextChar;
+            if(isGroupingSymbol(c))
+            {
+                insertGroupingSymbol(c);
+            }
+            else if (c == ':')
+            {
+                // Reading Assignment Symbol
+                if((iNextChar = oReader.read()) != -1)
                 {
-                    oList.add(new cNode("Lexical Error: "+ c +"(ascii: "+(int) c+") Invalid Character. Scanning aborted"));
-                    throw new Exception("Lexical Error: "+ c +"(ascii: "+(int) c+")");
-                }else
-                {
-                    if (c == '"')
+                    if((char)iNextChar == '=')
                     {
-                        //Short String
-                        System.out.println("+ short String");
-
+                        // Assignment symbol is correct (:=)
+                        oList.add(":=", eNodeType.Assignment);
+                    }
+                    else
+                    {
+                        // Invalid character after :
+                        // Was supposed to be an assignment symbol
+                        oList.add("Lexical Error: "+c+ (char)iNextChar+" (ascii "+iNextChar+"+). Expected =.",
+                                eNodeType.Error);
                     }
                 }
+                else
+                {
+                    // Invalid character after :
+                    // Was supposed to be an assignment symbol
+                    oList.add("Lexical Error: Unexpected end of program after "+c, eNodeType.Error);
+                }
+            }
+            else if(!(c == (char)13)&& !(c == (char) 32))
+            {
+                message = "Unexpected Error: "+c+" (ascii "+(int) c +")";
+                oList.add(message, eNodeType.Error);
+                throw new Exception(message);
+            }
+        }
+        System.out.println("Lexing complete.");
+        System.out.println(c+"(ascii "+(int)c+ ")");
+    }
 
+    private void shortString(BufferedReader oReader, char c) throws Exception
+    {
+        StringBuilder sShortString = new StringBuilder(String.valueOf(c));
+
+        int iStringLength = 0;
+        int iNextChar;
+        String message = "";
+        while ((iStringLength++ <= 15) && ((iNextChar = oReader.read()) != -1))
+        {
+            c = (char)iNextChar;
+            if( isShortStringChar(c))
+            {
+                sShortString.append(c);
 
             }
-        } finally
-        {
-
-            return oList;
+            else if (c == '"')
+            {
+                sShortString.append(c);
+                oList.add(new cNode(sShortString.toString(), eNodeType.ShortString));
+                return;
+            }
+            else if (!isValidChar(c))
+            {
+                message = "Lexical Error: "+ c +"(ascii: "+(int) c+"). Invalid Character. Scanning aborted";
+                oList.add(new cNode(message
+                        , eNodeType.Error));
+                throw new Exception(message);
+            }
+            else
+            {
+                message = "Lexical Error: "+sShortString+ c +". Invalid string name. Scanning aborted.";
+                oList.add(new cNode(message,
+                        eNodeType.Error));
+                throw new Exception(message);
+            }
         }
+        message = "Lexical Error: "+sShortString+". string too long. scanning aborted";
+        oList.add(new cNode(message, eNodeType.Error));
+        throw new Exception(message);
+    }
+
+    private void insertGroupingSymbol(char c) throws Exception
+    {
+        switch (c)
+        {
+            case '[':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.LeftSquareBracket);
+                break;
+            case ']':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.RightSquareBracket);
+                break;
+            case'{':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.LeftCurlyBrace);
+                break;
+            case'}':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.RightCurlyBrace);
+                break;
+            case'(':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.LeftBracket);
+                break;
+            case')':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.RightBracket);
+                break;
+            case';':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.SemiColon);
+                break;
+            case',':
+                oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.Comma);
+                break;
+            default:
+                String message = "Lexical Error: Expected Grouping symbol in place of "+c+" (ascii "+(int)c+").";
+                oList.add(message, eNodeType.Error);
+                throw new Exception(message);
+        }
+    }
+
+    private boolean isShortStringChar(char c)
+    {
+        return ((c == ' ' || ((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'Z')) ));
+    }
+
+    private boolean isUDN(char c)
+    {
+        return (((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'z')) );
     }
 
     private boolean isValidChar(char c)
@@ -80,45 +235,25 @@ public class cLexer
         return false;
     }
 
-    private void shortString(BufferedReader oReader, char c) throws Exception
+    private boolean isKeyword(String sUDN)
     {
-        String sShortString = String.valueOf(c);
-
-        int iStringLength = 0;
-        int iNextChar;
-        while ((iStringLength++ < 15) && ((iNextChar = oReader.read()) != -1))
+        String[] keywords = {"halt", "proc","main", "return", "if", "then", "else", "do", "until", "while", "output",
+                "input","call","true","false","not", "and", "or", "eq","larger","add", "sub","mult","arr","num","bool",
+                "string"};
+        for (String word:keywords)
         {
-            c = (char)iNextChar;
-            if( isShortStringChar(c))
-            {
-
-            }else
-            {
-                if(c == '"')
-                {
-                    sShortString += c;
-                    oList.add(new cNode(sShortString, eNodeType.ShortString));
-                }
-                break;
-            }
+            if(word.trim().equals(sUDN)) return true;
         }
-        if(isValidChar(c))
-        {
-          if(iStringLength >=16)
-            {
-                oList.add(new cNode("Lexical Error: "+sShortString+c+" = String too long. Scanning aborted"));
-                throw new Exception("Lexical Error: "+sShortString+c);
-            }
-
-        }else
-        {
-            oList.add(new cNode("Lexical Error: "+ c +"(ascii: "+(int) c+") Invalid Character. Scanning aborted"));
-            throw new Exception("Lexical Error: "+ c +"(ascii: "+(int) c+")");
-        }
+        return false;
     }
 
-    private boolean isShortStringChar(char c)
+    private boolean isGroupingSymbol(char c)
     {
-        return ((c == ' ' || ((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'Z')) ));
+        char[] symbols = {';',',','(',')','[',']','{','}'};
+        for (char symbol: symbols)
+        {
+            if(symbol == c) return true;
+        }
+        return false;
     }
 }

@@ -3,12 +3,10 @@ package Lexer;
 public enum eNodeType
 {
     Number,
-    userDefinedName,
+    UserDefinedName,
     ShortString,
     Grouping,
     Assignment,
     Keyword,
     Error
-
-
 }
