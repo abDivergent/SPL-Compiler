@@ -1,11 +1,12 @@
 string wandile := "WANDILE"                                             capital lett3r not accepted except short strings
 int myint :=12
-if( equal(wandile length(), 14))
+if( equal(wandile.length(), 14))
 {) is not really valid even thoigh
 12
+.
  these tokens are -35.11 are valid
 
 
 still valid when i l00k at it
 
-maybe := , ; i will ;;;;; find; a error if := this -10
+maybe := , ; i will ;;;;; find; a error if : = this
