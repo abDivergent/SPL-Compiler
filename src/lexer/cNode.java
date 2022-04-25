@@ -1,4 +1,4 @@
-package Lexer;
+package lexer;
 
 public class cNode
 {
@@ -8,7 +8,6 @@ public class cNode
     private int m_iId;
     private eNodeType m_eType;
     private String m_sValue;
-
     private eNodeSubType m_eSubType;
 
     public cNode(String pValue, eNodeType pType)
@@ -46,6 +45,11 @@ public class cNode
     public String getValue()
     {
         return m_sValue;
+    }
+
+    public eNodeSubType getSubType()
+    {
+        return m_eSubType;
     }
 
     //Setters

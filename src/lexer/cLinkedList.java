@@ -1,4 +1,4 @@
-package Lexer;
+package lexer;
 
 public class cLinkedList
 {
@@ -76,7 +76,7 @@ public class cLinkedList
             sNodeList.append("[")
                     .append(temp.getId())
                     .append("-")
-                    .append(temp.getType())
+                    .append(temp.getSubType() == null ? temp.getType() : temp.getSubType())
                     .append("-")
                     .append(temp.getValue())
                     .append("]\n");

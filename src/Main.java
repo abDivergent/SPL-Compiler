@@ -1,5 +1,5 @@
-import Lexer.cLexer;
-import Lexer.cLinkedList;
+import lexer.cLexer;
+import lexer.cLinkedList;
 
 public class Main
 {
@@ -13,9 +13,11 @@ public class Main
         } catch (Exception e)
         {
             System.out.println(e.getMessage());
+            System.out.println("//////////////////////////////////////////////////////////////////////////////");
+            System.out.println(oLexer.getList().toString());
             return;
         }
-
+        System.out.println("////////////////////////Lexing Complete");
         System.out.print(oList.toString());
         return;
     }

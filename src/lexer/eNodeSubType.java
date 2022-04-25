@@ -1,4 +1,4 @@
-package Lexer;
+package lexer;
 
 public enum eNodeSubType
 {
@@ -9,5 +9,12 @@ public enum eNodeSubType
     LeftCurlyBrace,
     RightCurlyBrace,
     Comma,
-    SemiColon
+    SemiColon,
+    SpecialCommand,
+    PDKeyword,
+    Comparison,
+    BooleanOp,
+    NumberOp,
+    IOCommand,
+    VarType
 }
