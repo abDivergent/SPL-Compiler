@@ -19,7 +19,7 @@ public class cParser
 
     public cParser(cLinkedList oList)
     {
-        oList.add(new cNode("$", null));
+        oList.add(new cNode("$", eNodeType.EOC));
         currentNode = oList.getHead();
     }
 
@@ -48,10 +48,17 @@ public class cParser
 
     private cTreeNode parse() throws Exception
     {
+        cTreeNode SPL = null;
         if(currentNode != null)
         {
-            cTreeNode SPL = parseSPL();
-            match("$");
+            if(isFirst(eSymbolType.SPL, currentNode))
+            {
+                parseSPL();
+                match("$");
+            }else if (currentNode.getValue().equals("$"))
+                match("$");
+            else
+                throw new Exception("[Parse Error] SPL has no action for "+currentNode);
             return SPL;
         }
         else
@@ -510,6 +517,8 @@ public class cParser
         ArrayList<String> list = first(type);
         switch (node.getType())
         {
+            case EOC:
+                return false;
             case Number:
                 return list.contains(NUM);
             case UserDefinedName:
@@ -530,6 +539,9 @@ public class cParser
         ArrayList<String> list = new ArrayList<>();
         switch (type)
         {
+            case SPL:
+                list.add("main");
+                list.addAll(first(eSymbolType.ProcDefs));
             case ProcDefs:
                 list.addAll(first(eSymbolType.PD));
                 break;

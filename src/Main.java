@@ -1,5 +1,6 @@
 import lexer.cLexer;
 import lexer.cLinkedList;
+import parser.TestFileCreator;
 import parser.cParser;
 import parser.cTreeNode;
 
@@ -7,6 +8,13 @@ public class Main
 {
     public static void main(String[] args)
     {
+
+        TestFileCreator test = new TestFileCreator();
+        String str = test.create();
+        test.writeToFile(str, "./src/test.txt");
+        System.out.println(test.udn(8));
+        System.out.println(test.genShortString(15));
+
         cLexer oLexer = new cLexer("./src/test.txt");
         cParser parser;
         cLinkedList oList = null;
@@ -25,4 +33,5 @@ public class Main
             e.printStackTrace();
         }
     }
+
 }
