@@ -21,5 +21,6 @@ public enum eSymbolType
     BinOp,
     VarDecl,
     Dec,
-    TYP
+    TYP,
+    Terminal
 }

@@ -11,10 +11,18 @@ public class cTreeNode
     private List<cTreeNode> children;
     private final boolean isTerminal;
 
-    public cTreeNode(cNode node, boolean isTerminal)
+    public cTreeNode(cNode node)
     {
         this.node = node;
-        this.isTerminal = isTerminal;
+        this.isTerminal = true;
+        children = null;
+    }
+
+    public cTreeNode(cNode node, List<cTreeNode> children)
+    {
+        this.node = node;
+        this.isTerminal = false;
+        this.setChildren(children);
     }
 
     public boolean isTerminal()
@@ -25,6 +33,14 @@ public class cTreeNode
     public List<cTreeNode> getChildren()
     {
         return children;
+    }
+    public void setChildren(List<cTreeNode> children)
+    {
+        children = new ArrayList<>();
+        for (cTreeNode node : children)
+        {
+            this.children.add(node);
+        }
     }
 
 }

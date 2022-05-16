@@ -2,6 +2,7 @@ package parser;
 
 import lexer.cLinkedList;
 import lexer.cNode;
+import lexer.eNodeType;
 
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -13,51 +14,36 @@ public class cParser
     final String SS = "-SS";
     final String NUM = "-N";
 
-    private cLinkedList oList = null;
-    private cTreeNode root = null;
-    private cNode currentNode = null;
+    private cNode currentNode;
     public Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     public cParser(cLinkedList oList)
     {
-        this.oList = oList;
+        oList.add(new cNode("$", null));
         currentNode = oList.getHead();
     }
 
     public cTreeNode start() throws Exception
     {
-        parse();
         if(currentNode != null )
-        return null;
-
+            return parse();
+        else
+            throw new Exception("Invalid input list");
     }
 
-    private void match(String input) throws Exception
+    private cTreeNode match(String input) throws Exception
     {
-        if(input.equals(currentNode.getValue()))
+        if( (input.equals(UDN) && currentNode.getType() == eNodeType.UserDefinedName) ||
+                (input.equals(SS) && currentNode.getType() == eNodeType.ShortString) ||
+                (input.equals(NUM) && currentNode.getType() == eNodeType.Number) ||
+                input.equals(currentNode.getValue()))
         {
-           //todo return tree node
+            cTreeNode temp = new cTreeNode(currentNode);
+            currentNode = currentNode.next();
+            return temp;
         }
         else
-        {
             throw new Exception("Invalid input "+currentNode.getValue()+" Expected "+input);
-        }
-    }
-
-    private cTreeNode parsex() throws Exception
-    {
-        if(isFirst(eSymbolType.ProcDefs, currentNode) || Follow("SPL", currentNode))
-        {
-            parseProcDefs();
-            match("main");
-            match("(");
-            parseAlg();
-            match("halt");
-            match(";");
-            parseVarDecl();
-            match("}");
-        }
-        return null;
     }
 
     private cTreeNode parse() throws Exception
@@ -69,21 +55,454 @@ public class cParser
             return SPL;
         }
         else
-        {
-            throw new Exception("[Parse] Error at " + currentNode);
-        }
+            throw new Exception("[Parse] Error at first node is null");
     }
 
-    private cTreeNode parseSPL()
+    private cTreeNode parseSPL() throws Exception
     {
-        if(isFirst(eSymbolType.ProcDefs, currentNode) || follow(eSymbolType.ProcDefs))
-        {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.ProcDefs, currentNode))
+            children = addChild(parseProcDefs(), children, eSymbolType.ProcDefs);
 
+        if (currentNode.getValue().equals("main"))
+        {
+            children.add(match("main"));
+            children.add(match("{"));
+            if (isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+            children.add(match("halt"));
+            children.add(match(";"));
+            if(isFirst(eSymbolType.VarDecl, currentNode))
+                children = addChild(parseVarDecl(), children, eSymbolType.VarDecl);
+            children.add(match("}"));
+            return new cTreeNode(new cNode(eSymbolType.SPL.name(), null), children);
+        }
+        else
+            throw new Exception("Error at SPL: no action for "+currentNode);
+    }
+
+    private cTreeNode parseVarDecl() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Dec, currentNode))
+        {
+            children = addChild(parseDec(), children, eSymbolType.Dec);
+            children.add(match(";"));
+
+            if (isFirst(eSymbolType.VarDecl, currentNode))
+                children = addChild(parseVarDecl(), children, eSymbolType.VarDecl);
+
+            return new cTreeNode(new cNode(eSymbolType.VarDecl.name(), null), children);
+        }
+        else
+            throw new Exception("Parse Error] VarDecl has no action for "+currentNode);
+    }
+
+    private cTreeNode parseDec() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.TYP, currentNode))
+        {
+            children = addChild(parseTYP(), children, eSymbolType.TYP);
+            children = addChild(parseVar(), children, eSymbolType.Var);
+        }else if(currentNode.getValue().equals("arr"))
+        {
+            children.add(match("arr"));
+            children = addChild(parseTYP(), children, eSymbolType.TYP);
+            children.add(match("["));
+            children = addChild(parseConst(), children, eSymbolType.Const);
+            children.add(match("]"));
+            children = addChild(parseVar(), children, eSymbolType.Var);
+        }
+        else
+            throw new Exception("[Parse Error] Dec has no action for "+currentNode);
+        
+        return new cTreeNode(new cNode(eSymbolType.Dec.name(), null), children);
+    }
+
+    private cTreeNode parseVar() throws Exception
+    {
+        if (isFirst(eSymbolType.Var, currentNode))
+            return match(UDN);
+        else
+            throw new Exception("[Parse Error] Var has no action for "+currentNode);
+    }
+
+    private cTreeNode parseTYP() throws Exception
+    {
+        switch (currentNode.getValue())
+        {
+            case "num":
+                return match("num");
+            case "bool":
+                return match("bool");
+            case "string":
+                return match("string");
+            default:
+                throw new Exception("[Parse Error] TYP has no action for "+currentNode);
         }
     }
 
+    private cTreeNode parseAlg() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Instr, currentNode))
+        {
+            children = addChild(parseInstr(), children, eSymbolType.Instr);
+            children.add(match(";"));
+            if (isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+            return new cTreeNode(new cNode(eSymbolType.Algorithm.name(), null), children) ;
+        }
+        else
+            throw new Exception("[Parse Error] Alg has no action for "+currentNode );
+    }
 
+    private cTreeNode parseInstr() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Assign, currentNode))
+            children = addChild(parseAssign(), children, eSymbolType.Assign);
+        else if (isFirst(eSymbolType.Branch, currentNode))
+            children = addChild(parseBranch(), children, eSymbolType.Branch);
+        else if (isFirst(eSymbolType.Loop, currentNode))
+            children = addChild(parseLoop(), children, eSymbolType.Loop);
+        else if (isFirst(eSymbolType.PCall, currentNode))
+            children = addChild(parsePCall(), children, eSymbolType.PCall);
+        else
+            throw new Exception("[Parse Error] Instr has no action for "+currentNode);
 
+        return new cTreeNode(new cNode(eSymbolType.Instr.name(), null), children);
+    }
+
+    private cTreeNode parsePCall() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if (currentNode.getValue().equals("call"))
+        {
+            children.add(match("call"));
+            children.add(match(UDN));
+            return new cTreeNode(new cNode(eSymbolType.PCall.name(), null), children);
+        }
+        else
+            throw new Exception("[Parse Error] PCall has no action for "+currentNode);
+    }
+
+    private cTreeNode parseLoop() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(currentNode.getValue().equals("do"))
+        {
+            children.add(match("do"));
+            children.add(match("{"));
+            if(isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+
+            children.add(match("}"));
+            children.add(match("until"));
+            children.add(match("("));
+            children = addChild(parseExpr(), children, eSymbolType.Expr);
+            children.add(match(")"));
+
+        }else if (currentNode.getValue().equals("while"))
+        {
+            children.add(match("while"));
+            children.add(match("("));
+            children = addChild(parseExpr(), children, eSymbolType.Expr);
+            children.add(match(")"));
+            children.add(match("do"));
+            children.add(match("{"));
+            if(isFirst(eSymbolType.Algorithm ,currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+
+            children.add(match("}"));
+        }
+        else
+            throw new Exception("[Parse Error] Loop has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.Loop.name(), null), children);
+    }
+
+    private cTreeNode parseExpr() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if (isFirst(eSymbolType.Const, currentNode))
+            children = addChild(parseConst(), children, eSymbolType.Const);
+        else if (isFirst(eSymbolType.UnOp, currentNode))
+            children = addChild(parseUnOp(), children, eSymbolType.UnOp);
+        else if (isFirst(eSymbolType.BinOp, currentNode))
+            children = addChild(parseBinOp(), children, eSymbolType.BinOp);
+        else if (isFirst(eSymbolType.Var,currentNode))
+        {
+            // First(Var) = First(Field)
+            // Solution, call Field if the following node is "["
+            if(currentNode.next().getValue().endsWith("["))
+                children = addChild(parseField(), children, eSymbolType.Field);
+            else
+                children = addChild(parseVar(), children, eSymbolType.Var);
+        }
+        else
+            throw new Exception("[Parse Error] Expr has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.Expr.name(), null), children);
+    }
+
+    private cTreeNode parseField() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Field, currentNode))
+        {
+            children.add(match(UDN));
+            children.add(match("["));
+            if (isFirst(eSymbolType.Var, currentNode))
+                children = addChild(parseVar(), children, eSymbolType.Var);
+            else if (isFirst(eSymbolType.Const, currentNode))
+                children = addChild(parseConst(), children, eSymbolType.Const);
+            else
+                throw new Exception("[Parse Error] expected Var or Const but received "+currentNode);
+            children.add(match("]"));
+        }
+        else
+            throw new Exception("[Parse Error] Field has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.Field.name(), null), children);
+    }
+
+    private cTreeNode parseBinOp() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        switch (currentNode.getValue())
+        {
+            case "and":
+                children.add(match("and"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "or":
+                children.add(match("or"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "eq":
+                children.add(match("eq"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "larger":
+                children.add(match("larger"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "add":
+                children.add(match("add"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "sub":
+                children.add(match("sub"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            case "mult":
+                children.add(match("mult"));
+                children.add(match("("));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(","));
+                children = addChild(parseExpr(), children, eSymbolType.Expr);
+                children.add(match(")"));
+                break;
+            default:
+                throw new Exception("[Parse Error]  BinOp has no action for " + currentNode);
+        }
+
+        return new cTreeNode(new cNode(eSymbolType.BinOp.name(), null), children);
+    }
+
+    private cTreeNode parseUnOp() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(currentNode.getValue().equals("input"))
+        {
+            children.add(match("input"));
+            children.add(match("("));
+            children = addChild(parseVar(), children, eSymbolType.Var);
+            children.add(match(")"));
+        }
+        else if (currentNode.getValue().equals("not"))
+        {
+            children.add(match("not"));
+            children.add(match("("));
+            children = addChild(parseExpr(), children, eSymbolType.Expr);
+            children.add(match(")"));
+        }
+        else
+            throw new Exception("[Parse Error] UnOp has no action for "+currentNode );
+
+        return new cTreeNode(new cNode(eSymbolType.UnOp.name(), null), children);
+    }
+
+    private cTreeNode parseConst() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(currentNode.getType() == eNodeType.ShortString)
+            children.add(match(SS));
+        else if (currentNode.getType() == eNodeType.Number)
+            children.add(match(NUM));
+        else if (currentNode.getType() == eNodeType.Keyword && currentNode.getValue().equals("true"))
+            children.add(match("true"));
+        else if (currentNode.getType() == eNodeType.Keyword && currentNode.getValue().equals("false"))
+            children.add(match("false"));
+        else
+            throw new Exception("[Parse Error] Const has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.Const.name(), null), children);
+    }
+
+    private cTreeNode parseBranch() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Branch, currentNode))
+        {
+            children.add(match("if"));
+            children.add(match("("));
+            children = addChild(parseExpr(), children, eSymbolType.Expr);
+            children.add(match(")"));
+            children.add(match("then"));
+            children.add(match("{"));
+            if(isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+
+            children.add(match("}"));
+            if (isFirst(eSymbolType.Alt, currentNode))
+                children = addChild(parseAlt(), children, eSymbolType.Alt);
+
+            return new cTreeNode(new cNode(eSymbolType.Branch.name(), null), children);
+        }
+        else
+            throw new Exception("[Parse Error] Branch has no action for "+currentNode);
+    }
+
+    private cTreeNode parseAlt() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.Alt, currentNode))
+        {
+            children.add(match("else"));
+            children.add(match("{"));
+            if(isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+
+            children.add(match("}"));
+        }
+        else
+            throw new Exception("[Parse Error] Alternat has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.Alt.name(), null), children);
+    }
+
+    private cTreeNode parseAssign() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if (isFirst(eSymbolType.LHS, currentNode))
+        {
+            children = addChild(parseLHS(), children, eSymbolType.LHS);
+            children.add(match(":="));
+            children = addChild(parseExpr(), children, eSymbolType.Expr);
+
+            return new cTreeNode(new cNode(eSymbolType.Assign.name(), null), children);
+        }
+        else
+            throw new Exception("Parse Error] Assign has no action for "+currentNode);
+    }
+
+    private cTreeNode parseLHS() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if (currentNode.getValue().equals("output"))
+            children.add(match("output"));
+        else if (isFirst(eSymbolType.Var, currentNode))
+        {
+            if (currentNode.next().getValue().equals("["))
+                children = addChild(parseField(), children, eSymbolType.Field);
+            else
+                children = addChild(parseVar(), children, eSymbolType.Var);
+        }
+        else
+            throw new Exception("[Parse Error] LHS has no action for "+currentNode);
+
+        return new cTreeNode(new cNode(eSymbolType.LHS.name(), null), children);
+    }
+
+    private cTreeNode parseProcDefs() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.PD,currentNode))
+        {
+            children = addChild(parsePD(), children, eSymbolType.PD);
+            children.add(match(","));
+            if(isFirst(eSymbolType.ProcDefs, currentNode))
+                children = addChild(parseProcDefs(), children, eSymbolType.ProcDefs);
+
+            return new cTreeNode(new cNode(eSymbolType.ProcDefs.name(), null), children);
+        }
+        else
+            throw new Exception("[Parser Error] ProcDefs has no action for "+currentNode);
+    }
+
+    private cTreeNode parsePD() throws Exception
+    {
+        ArrayList<cTreeNode> children = new ArrayList<>();
+        if(isFirst(eSymbolType.PD, currentNode))
+        {
+            children.add(match("proc"));
+            children.add(match(UDN));
+            children.add(match("{"));
+
+            if(isFirst(eSymbolType.ProcDefs, currentNode))
+                children = addChild(parseProcDefs(), children, eSymbolType.ProcDefs);
+
+            if(isFirst(eSymbolType.Algorithm, currentNode))
+                children = addChild(parseAlg(), children, eSymbolType.Algorithm);
+
+            children.add(match("return"));
+            children.add(match(";"));
+
+            if(isFirst(eSymbolType.VarDecl, currentNode))
+                children = addChild(parseVarDecl(), children, eSymbolType.VarDecl);
+
+            children.add(match("}"));
+
+            return new cTreeNode(new cNode(eSymbolType.PD.name(), null), children);
+        }
+        else
+            throw new Exception("[Parse Error] PD has no action for "+currentNode);
+    }
+
+    private ArrayList<cTreeNode> addChild(cTreeNode child, ArrayList<cTreeNode> children, eSymbolType type) throws Exception
+    {
+        if(child == null)
+            throw new Exception(type+" cannot be null at "+currentNode);
+        children.add(child);
+        return children;
+    }
 
 
     private boolean isFirst(eSymbolType type, cNode node)
@@ -98,9 +517,10 @@ public class cParser
             case ShortString:
                 return list.contains(SS);
             case Keyword:
+            case Grouping:
                 return list.contains(node.getValue());
             default:
-                LOGGER.log(Level.WARNING, "unexpect error at idFirst() : "+node);
+                LOGGER.log(Level.WARNING, "unexpect error at isFirst() : "+node);
         }
         return false;
     }
@@ -111,14 +531,12 @@ public class cParser
         switch (type)
         {
             case ProcDefs:
-                list.add(null);
                 list.addAll(first(eSymbolType.PD));
                 break;
             case PD:
                 list.add("proc");
                 break;
             case Algorithm:
-                list.add(null);
                 list.addAll(first(eSymbolType.Instr));
                 break;
             case Instr:
@@ -150,7 +568,6 @@ public class cParser
                 list.add("call");
                 break;
             case Alt:
-                list.add(null);
                 list.add("else");
                 break;
             case Expr:
@@ -180,10 +597,10 @@ public class cParser
                 list.add("mult");
                 break;
             case VarDecl:
-                list.add(null);
                 list.addAll(first(eSymbolType.Dec));
                 break;
             case Dec:
+                list.add("arr");
                 list.addAll(first(eSymbolType.TYP));
                 break;
             case TYP:
