@@ -8,5 +8,6 @@ public enum eNodeType
     Grouping,
     Assignment,
     Keyword,
-    Error
+    Error,
+    EOC
 }
