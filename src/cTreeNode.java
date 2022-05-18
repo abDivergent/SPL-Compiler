@@ -1,7 +1,3 @@
-package parser;
-
-import lexer.cNode;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +11,7 @@ public class cTreeNode
     {
         this.node = node;
         this.isTerminal = true;
-        children = null;
+        this.children = new ArrayList<>();
     }
 
     public cTreeNode(cNode node, List<cTreeNode> children)
@@ -32,15 +28,12 @@ public class cTreeNode
 
     public List<cTreeNode> getChildren()
     {
-        return children;
+        return this.children;
     }
-    public void setChildren(List<cTreeNode> children)
+    public void setChildren(List<cTreeNode> childNodes)
     {
-        children = new ArrayList<>();
-        for (cTreeNode node : children)
-        {
-            this.children.add(node);
-        }
+        this.children = new ArrayList<>();
+        this.children.addAll(childNodes);
     }
 
 }

@@ -1,9 +1,3 @@
-package parser;
-
-import lexer.cLinkedList;
-import lexer.cNode;
-import lexer.eNodeType;
-
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +9,8 @@ public class cParser
     final String NUM = "-N";
 
     private cNode currentNode;
+    private String treeString = "";
+    private cTreeNode treeRoot = null;
     public Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     public cParser(cLinkedList oList)
@@ -25,8 +21,13 @@ public class cParser
 
     public cTreeNode start() throws Exception
     {
-        if(currentNode != null )
-            return parse();
+        if (currentNode != null)
+        {
+            treeRoot = parse();
+            removeGrouping(treeRoot);
+            pruneSubTree(treeRoot);
+            return treeRoot;
+        }
         else
             throw new Exception("Invalid input list");
     }
@@ -48,18 +49,22 @@ public class cParser
 
     private cTreeNode parse() throws Exception
     {
-        cTreeNode SPL = null;
+        ArrayList<cTreeNode> children = new ArrayList<>();
         if(currentNode != null)
         {
             if(isFirst(eSymbolType.SPL, currentNode))
             {
-                parseSPL();
+                cTreeNode temp = parseSPL();
+                children = addChild(temp, children, eSymbolType.SPL);
                 match("$");
+                return temp;
             }else if (currentNode.getValue().equals("$"))
+            {
                 match("$");
+                return null;
+            }
             else
                 throw new Exception("[Parse Error] SPL has no action for "+currentNode);
-            return SPL;
         }
         else
             throw new Exception("[Parse] Error at first node is null");
@@ -82,7 +87,8 @@ public class cParser
             if(isFirst(eSymbolType.VarDecl, currentNode))
                 children = addChild(parseVarDecl(), children, eSymbolType.VarDecl);
             children.add(match("}"));
-            return new cTreeNode(new cNode(eSymbolType.SPL.name(), null), children);
+            cTreeNode newNode = new cTreeNode(new cNode(eSymbolType.SPL.name(), null), children);
+            return newNode;
         }
         else
             throw new Exception("Error at SPL: no action for "+currentNode);
@@ -627,6 +633,119 @@ public class cParser
         return list;
     }
 
+    public String printTree()
+    {
+        if(treeRoot != null)
+        {
+            printSubTree(treeRoot, "", 0);
+            return treeString;
+        }
+        return "tree root is null";
+    }
+
+    private void printSubTree(cTreeNode treeNode, String tabs, int index)
+    {
+        treeString += tabs + index +" - "+ treeNode.node.getValue() + "\n";
+        tabs += treeNode.getChildren().size() > 1 ? "   |" : "    ";
+        int i = 1;
+        for (cTreeNode child : treeNode.getChildren())
+        {
+            printSubTree(child, tabs, i++);
+        }
+    }
+
+    public String getTreeString()
+    {
+        if(treeRoot != null)
+        {
+            return subTreeString(treeRoot, "",0);
+        }
+        return "No tree generated [tree root is null]";
+    }
+
+
+    private String subTreeString(cTreeNode treeNode, String padding, int index)
+    {
+        String str = padding + index +" - "+ treeNode.node.getValue() + "\n";
+        padding += treeNode.getChildren().size() > 1 ? "   |" : "    ";
+
+        int i = 1;
+        for (cTreeNode child : treeNode.getChildren())
+        {
+            str += subTreeString(child, padding, i++);
+        }
+        return str;
+    }
+
+    private void removeGrouping(cTreeNode node)
+    {
+        if(node != null)
+        {
+            boolean changed = true;
+            ArrayList<cTreeNode> newChildren = new ArrayList<>();
+            for (int i = 0; i < node.getChildren().size(); i++)
+            {
+                if(node.getChildren().get(i) != null)
+                {
+                    if (!isRemovable(node.getChildren().get(i)))
+                    {
+                        newChildren.add(node.getChildren().get(i));
+                    }
+                }
+            }
+
+            newChildren.trimToSize();
+            node.setChildren(newChildren);
+            for (int i = 0; i < node.getChildren().size(); i++)
+            {
+                removeGrouping(node.getChildren().get(i));
+            }
+        }
+    }
+
+    private boolean isRemovable(cTreeNode node)
+    {
+        String[] removableSymbol = {"{", "}", "(", ")", ";" , ",", "[", "]", ":=" };
+        for (String s : removableSymbol)
+        {
+            if (node.node.getValue().equals(s))
+                return true;
+        }
+        return false;
+    }
+
+    public void pruneSubTree(cTreeNode parent)
+    {
+        ArrayList<cTreeNode> children;
+
+        boolean changed = false;
+        if(parent != null &&  parent.getChildren().size()> 0 )
+        {
+            children = (ArrayList<cTreeNode>) parent.getChildren();
+            for (int i = 0; i < children.size(); i++)
+            {
+                cTreeNode node = children.get(i);
+                if (node.getChildren().size() == 1 && node.getChildren().get(0).getChildren().size() == 1 )
+                {
+                    System.out.println("pruning "+node.getChildren().get(0).node.getValue() +"  for  "+node.getChildren().get(0).getChildren().get(0).node.getValue());
+                    node.setChildren(node.getChildren().get(0).getChildren());
+                    changed = true;
+                }
+
+                if (changed)
+                    pruneSubTree(parent);
+                else {
+                    for (cTreeNode child: children) {
+                        pruneSubTree(child);
+                    }
+                }
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //................................................. DEPRECATED
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private ArrayList<String> follow(eSymbolType type)
     {
         ArrayList<String> list = new ArrayList<>();

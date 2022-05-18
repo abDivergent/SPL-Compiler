@@ -1,5 +1,3 @@
-package lexer;
-
 public enum eNodeType
 {
     Number,

@@ -1,5 +1,3 @@
-package parser;
-
 public enum eSymbolType
 {
     SPL,

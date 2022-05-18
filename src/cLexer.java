@@ -1,5 +1,3 @@
-package lexer;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +38,7 @@ public class cLexer
             // Check if valid Char
             if(!isValidChar(c))
             {
-                message = "[Lexical Error] "+ c +"(ascii: "+(int) c+") Invalid Character. Scanning aborted";
+                message = invalidTokenError()+ c +"(ascii: "+(int) c+"). Scanning aborted";
                 oList.add(new cNode( message, eNodeType.Error));
                 throw new Exception(message);
             }else
@@ -74,7 +72,7 @@ public class cLexer
                         insertAssignmentSymbol(c, oBufferReader);
                     }
                     else {
-                        message = "[Lexical Error] "+ c +"(ascii "+iNextChar+") Unidentified error. Scanning aborted";
+                        message = classErrorName()+ c +"(ascii "+iNextChar+") Unidentified error. Scanning aborted";
                         oList.add(message, eNodeType.Error);
                         throw new Exception(message);
                     }
@@ -96,7 +94,7 @@ public class cLexer
         if(c == '-' && ((iNextChar = oReader.read()) == -1 || '0'==(char) iNextChar))
         {
             // if the first character is '-' and the following is null, zero or a non number character
-            message = "[Lexical Error] at "+c+(char)iNextChar+" (unexpected char after -).";
+            message = unexpectedTokenError()+" "+c+(char)iNextChar+" (unexpected char after -).";
             oList.add(new cNode(message, eNodeType.Error));
             throw new Exception(message);
         }
@@ -114,7 +112,7 @@ public class cLexer
                 {
                     if(sStringBuilder.toString().contains("."))
                     {
-                        message = "[Lexical Error]  Unexpected token "+ c +"(ascii "+iNextChar+"). Scanning aborted";
+                        message = unexpectedTokenError()+ c +"(ascii "+iNextChar+"). Scanning aborted";
                         oList.add(new cNode(message, eNodeType.Error));
                         throw new Exception(message);
                     }
@@ -130,13 +128,14 @@ public class cLexer
                 }
                 else if( isValidChar(c))
                 {
-                    message = "[Lexical Error] at "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not a number].";
+                    message = unexpectedTokenError()+" "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not" +
+                            " a number].";
                     oList.add(new cNode(message, eNodeType.Error));
                     throw new Exception(message);
                 }
                 else
                 {
-                    message = "[Lexical Error] at "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not valid].";
+                    message = unexpectedTokenError()+" "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not valid].";
                     oList.add(new cNode(message, eNodeType.Error));
                     throw new Exception(message);
                 }
@@ -159,9 +158,14 @@ public class cLexer
             {
                 // '-' can only be followed by a non-zero number
                 // Error if iNextChar is anything other than a non-zero umber
-                message = "[Lexical Error] at " + c + (char) iNextChar + " (unexpected char after -).";
+                message = unexpectedTokenError()+" " + c + (char) iNextChar + " (unexpected char after -).";
                 oList.add(new cNode(message, eNodeType.Error));
                 throw new Exception(message);
+            }
+            else if (c=='0')
+            {
+                //todo make usre that zero cannot be followed by another number or string (partially thought about)
+                if(!isValidChar((char) iNextChar) || )
             }
             else
             {
@@ -170,9 +174,9 @@ public class cLexer
             do
             {
                 c = (char) iNextChar;
-                if(isNumber(c) || c=='.')
+                if(isNumber(c))
                 {
-                    // if c== '-' this should always run on the first iteration
+                    // if c== '-' (when the function is called) this should always run on the first iteration
                     sNumber.append(c);
                 }
                 else if(isValidWhiteSpace(c))
@@ -193,7 +197,7 @@ public class cLexer
                 else
                 {
                     // Any other character besides a number, white space or grouping symbol is not valid
-                    message = "[Lexical Error] Unexpected token "+c+" (ascii "+(int)c+").";
+                    message = unexpectedTokenError()+" "+c+" (ascii "+(int)c+").";
                     oList.add(new cNode(message, eNodeType.Error));
                     throw new Exception(message);
                 }
@@ -204,7 +208,7 @@ public class cLexer
             if (c == '-')
             {
                 // c== '-' and no number follows after
-                message = "[Lexical Error] Unexpected end of string after -";
+                message = classErrorName()+" Unexpected end of string after -";
                 oList.add(new cNode(message, eNodeType.Error));
                 throw new Exception(message);
             }
@@ -251,7 +255,7 @@ public class cLexer
             }
             else if(!isValidWhiteSpace(c))
             {
-                message = "[Lexical Error]Unexpected Error: "+c+" (ascii "+(int) c +")";
+                message = unexpectedTokenError()+" "+c+" (ascii "+(int) c +")";
                 oList.add(message, eNodeType.Error);
                 throw new Exception(message);
             }
@@ -261,6 +265,7 @@ public class cLexer
     private void insertAssignmentSymbol(char c, BufferedReader oReader) throws Exception
     {
         int iNextChar;
+        String message = "";
         if((iNextChar = oReader.read()) != -1)
         {
             if((char)iNextChar == '=')
@@ -272,15 +277,18 @@ public class cLexer
             {
                 // Invalid character after :
                 // Was supposed to be an assignment symbol
-                oList.add("[Lexical Error ]"+c+ (char)iNextChar+" (ascii "+iNextChar+"+). Expected =",
-                        eNodeType.Error);
+                message = unexpectedTokenError()+c+ (char)iNextChar+" (ascii "+iNextChar+"+). Expected =";
+                oList.add(message, eNodeType.Error);
+                throw new Exception(message);
             }
         }
         else
         {
             // Invalid character after :
             // Was supposed to be an assignment symbol
-            oList.add("[Lexical Error] Unexpected end of program after "+c, eNodeType.Error);
+            message = classErrorName() + " Unexpected end of program after "+c;
+            oList.add(message, eNodeType.Error);
+            throw new Exception(message);
         }
     }
 
@@ -307,20 +315,18 @@ public class cLexer
             }
             else if (!isValidChar(c))
             {
-                message = "[Lexical Error] "+ c +"(ascii: "+(int) c+"). Invalid Character. Scanning aborted";
-                oList.add(new cNode(message
-                        , eNodeType.Error));
+                message = invalidTokenError()+ c +"(ascii: "+(int) c+"). Scanning aborted";
+                oList.add(new cNode(message, eNodeType.Error));
                 throw new Exception(message);
             }
             else
             {
-                message = "[Lexical Error] "+sShortString+ c +". Invalid string name. Scanning aborted.";
-                oList.add(new cNode(message,
-                        eNodeType.Error));
+                message = classErrorName() + sShortString+ c +". Invalid string name. Scanning aborted.";
+                oList.add(new cNode(message, eNodeType.Error));
                 throw new Exception(message);
             }
         }
-        message = "[Lexical Error] "+sShortString+". string too long. scanning aborted";
+        message = classErrorName() + sShortString + ". string too long. scanning aborted";
         oList.add(new cNode(message, eNodeType.Error));
         throw new Exception(message);
     }
@@ -354,7 +360,7 @@ public class cLexer
                 oList.add(String.valueOf(c), eNodeType.Grouping, eNodeSubType.Comma);
                 break;
             default:
-                String message = "[Lexical Error] Expected Grouping symbol in place of "+c+" (ascii "+(int)c+").";
+                String message = unexpectedTokenError()+" "+c+" (ascii "+(int)c+"). Expected Grouping symbol";
                 oList.add(message, eNodeType.Error);
                 throw new Exception(message);
         }
@@ -455,5 +461,20 @@ public class cLexer
     private boolean isValidWhiteSpace(char c)
     {
         return ((int) c == 10)|| ((int)c == 13) || ((int)c == 32);
+    }
+    
+    private String classErrorName()
+    {
+        return "[Lexical Error] ";
+    }
+    
+    private String unexpectedTokenError()
+    {
+        return classErrorName()+" Expected token ";
+    }
+
+    private String invalidTokenError()
+    {
+        return classErrorName() +" Invalid Character ";
     }
 }

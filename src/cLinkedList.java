@@ -1,5 +1,3 @@
-package lexer;
-
 public class cLinkedList
 {
     private cNode m_oHead;
