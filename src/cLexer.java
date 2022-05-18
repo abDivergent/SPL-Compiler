@@ -12,11 +12,6 @@ public class cLexer
         m_sFilePath = pFilePath;
     }
 
-    public cLinkedList getList()
-    {
-        return oList;
-    }
-
     public cLinkedList start() throws Exception
     {
         String message;
@@ -85,66 +80,6 @@ public class cLexer
         return oList;
     }
 
-    private void readNumbers(BufferedReader oReader, char c) throws Exception
-    {
-        int iNextChar = 0;
-        String message;
-        StringBuilder sStringBuilder;
-
-        if(c == '-' && ((iNextChar = oReader.read()) == -1 || '0'==(char) iNextChar))
-        {
-            // if the first character is '-' and the following is null, zero or a non number character
-            message = unexpectedTokenError()+" "+c+(char)iNextChar+" (unexpected char after -).";
-            oList.add(new cNode(message, eNodeType.Error));
-            throw new Exception(message);
-        }
-        else
-        {
-            sStringBuilder = new StringBuilder(String.valueOf(c));
-            do
-            {
-                c = (char) iNextChar;
-                if(isNumber(c))
-                {
-                    sStringBuilder.append(c);
-                }
-                else if(c =='.')
-                {
-                    if(sStringBuilder.toString().contains("."))
-                    {
-                        message = unexpectedTokenError()+ c +"(ascii "+iNextChar+"). Scanning aborted";
-                        oList.add(new cNode(message, eNodeType.Error));
-                        throw new Exception(message);
-                    }
-                    else
-                    {
-                        sStringBuilder.append(c);
-                    }
-                }
-                else if( isValidWhiteSpace(c))
-                {
-                    oList.add(new cNode(sStringBuilder.toString(), eNodeType.Number));
-                    return;
-                }
-                else if( isValidChar(c))
-                {
-                    message = unexpectedTokenError()+" "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not" +
-                            " a number].";
-                    oList.add(new cNode(message, eNodeType.Error));
-                    throw new Exception(message);
-                }
-                else
-                {
-                    message = unexpectedTokenError()+" "+sStringBuilder+c+" ["+c+" (ascii "+(int)c+") is not valid].";
-                    oList.add(new cNode(message, eNodeType.Error));
-                    throw new Exception(message);
-                }
-            }while ((iNextChar = oReader.read()) != -1);
-
-            oList.add(sStringBuilder.toString(), eNodeType.Number);
-        }
-
-    }
 
     private void readNumber(BufferedReader oReader, char c) throws Exception
     {
@@ -158,14 +93,17 @@ public class cLexer
             {
                 // '-' can only be followed by a non-zero number
                 // Error if iNextChar is anything other than a non-zero umber
-                message = unexpectedTokenError()+" " + c + (char) iNextChar + " (unexpected char after -).";
+                message = unexpectedTokenError()+" "+ (char) iNextChar + " (ascii "+iNextChar+") after '-' ";
                 oList.add(new cNode(message, eNodeType.Error));
                 throw new Exception(message);
             }
-            else if (c=='0')
+            else if(c == '0' && (isNumber((char) iNextChar) || isLetter((char) iNextChar)))
             {
-                //todo make usre that zero cannot be followed by another number or string (partially thought about)
-                if(!isValidChar((char) iNextChar) || )
+                // '0' cannot be followed by a number or letter
+                // Error if iNextChar is a letter of number
+                message = unexpectedTokenError() + (char) iNextChar + " (ascii "+iNextChar+") after '0' ";
+                oList.add(new cNode(message, eNodeType.Error));
+                throw new Exception(message);
             }
             else
             {
@@ -376,6 +314,11 @@ public class cLexer
         return (isNumber(c) || ((c >= 'a') && (c <= 'z')) );
     }
 
+    private boolean isLetter(char c)
+    {
+        return ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z'));
+    }
+
     private boolean isValidChar(char c)
     {
         if( isNumber(c)) return true;
@@ -470,7 +413,7 @@ public class cLexer
     
     private String unexpectedTokenError()
     {
-        return classErrorName()+" Expected token ";
+        return classErrorName()+" Unexpected token ";
     }
 
     private String invalidTokenError()

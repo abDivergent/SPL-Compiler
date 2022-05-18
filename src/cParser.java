@@ -55,7 +55,6 @@ public class cParser
             if(isFirst(eSymbolType.SPL, currentNode))
             {
                 cTreeNode temp = parseSPL();
-                children = addChild(temp, children, eSymbolType.SPL);
                 match("$");
                 return temp;
             }else if (currentNode.getValue().equals("$"))
@@ -87,8 +86,7 @@ public class cParser
             if(isFirst(eSymbolType.VarDecl, currentNode))
                 children = addChild(parseVarDecl(), children, eSymbolType.VarDecl);
             children.add(match("}"));
-            cTreeNode newNode = new cTreeNode(new cNode(eSymbolType.SPL.name(), null), children);
-            return newNode;
+            return new cTreeNode(new cNode(eSymbolType.SPL.name(), null), children);
         }
         else
             throw new Exception("Error at SPL: no action for "+currentNode);
