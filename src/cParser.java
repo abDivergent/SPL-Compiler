@@ -24,8 +24,6 @@ public class cParser
         if (currentNode != null)
         {
             treeRoot = parse();
-            removeGrouping(treeRoot);
-            pruneSubTree(treeRoot);
             return treeRoot;
         }
         else
