@@ -1,4 +1,8 @@
 
+import Lexer.cLexer;
+import Lexer.cLinkedList;
+import Parser.cParser;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

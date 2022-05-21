@@ -1,3 +1,9 @@
+package Lexer;
+
+import Node.cNode;
+import Node.eNodeSubType;
+import Node.eNodeType;
+
 public class cLinkedList
 {
     private cNode m_oHead;

@@ -1,3 +1,9 @@
+package Lexer;
+
+import Node.cNode;
+import Node.eNodeSubType;
+import Node.eNodeType;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
