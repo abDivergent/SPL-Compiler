@@ -32,6 +32,8 @@ public class cParser
         if (currentNode != null)
         {
             treeRoot = parse();
+            removeGrouping(treeRoot);
+            pruneSubTree(treeRoot);
             return treeRoot;
         }
         else
@@ -50,7 +52,21 @@ public class cParser
             return temp;
         }
         else
-            throw new Exception("Invalid input "+currentNode.getValue()+" Expected "+input);
+        {
+            switch (input)
+            {
+                case UDN:
+                    input = "a userDefinedName token";
+                    break;
+                case SS:
+                    input = "a ShortString Token";
+                    break;
+                case NUM:
+                    input = "a Number Token";
+                    break;
+            }
+            throw new Exception("Invalid token "+currentNode.matchError() +", Expected "+input);
+        }
     }
 
     private cTreeNode parse() throws Exception
@@ -720,28 +736,30 @@ public class cParser
 
     public void pruneSubTree(cTreeNode parent)
     {
-        ArrayList<cTreeNode> children;
-
         boolean changed = false;
-        if(parent != null &&  parent.getChildren().size()> 0 )
+        if(parent != null )
         {
-            children = (ArrayList<cTreeNode>) parent.getChildren();
-            for (int i = 0; i < children.size(); i++)
+            if (parent.getChildren().size() > 0)
             {
-                cTreeNode node = children.get(i);
-                if (node.getChildren().size() == 1 && node.getChildren().get(0).getChildren().size() == 1 )
+                for (int i = 0; i < parent.getChildren().size(); i++)
                 {
-                    System.out.println("pruning "+node.getChildren().get(0).node.getValue() +"  for  "+node.getChildren().get(0).getChildren().get(0).node.getValue());
-                    node.setChildren(node.getChildren().get(0).getChildren());
-                    changed = true;
-                }
-
-                if (changed)
-                    pruneSubTree(parent);
-                else {
-                    for (cTreeNode child: children) {
-                        pruneSubTree(child);
+                    cTreeNode node = parent.getChildren().get(i);
+                    if (node.getChildren().size() == 1 && node.getChildren().get(0).getChildren().size()  <= 1)
+                    {
+                        parent.getChildren().add(i, node.getChildren().get(0));
+                        parent.getChildren().remove(node);
+                        parent.getChildren().trimToSize();
+                        changed = true;
                     }
+                }
+            }
+            if(changed)
+                pruneSubTree(parent);
+            else
+            {
+                for (int i = 0; i < parent.getChildren().size() ; i++)
+                {
+                    pruneSubTree(parent.getChildren().get(i));
                 }
             }
         }

@@ -1,5 +1,9 @@
 package test;
 
+import Node.cNode;
+import Node.eNodeSubType;
+import Node.eNodeType;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
@@ -43,6 +47,11 @@ public class TestFileCreator
     public String create()
     {
         return spl();
+    }
+
+    public void createToFile(String path) throws IOException
+    {
+        writeToFile(spl(), path);
     }
 
     private String spl()
@@ -118,6 +127,8 @@ public class TestFileCreator
             str.append(genChar().toLowerCase());
             i--;
         }
+        if (isKeyword(String.valueOf(str)))
+            return udn(i);
         return " " + str + " ";
 
     }
@@ -321,7 +332,7 @@ public class TestFileCreator
      *  @param str string to be written ro fil
      * @param file path to existing file
      */
-    public void writeToFile(String str, String file)
+    public void writeToFile(String str, String file) throws IOException
     {
         try
         {
@@ -331,8 +342,26 @@ public class TestFileCreator
         } catch (IOException e)
         {
             System.out.println("An error occurred.");
-            e.printStackTrace();
+            throw e;
         }
+    }
+
+    private boolean isKeyword(String sUDN)
+    {
+        String[] keywords1 = {"eq", "larger","input", "output", "num", "bool", "string","arr","add", "sub", "mult"};
+        String[] keywords2 = {"true", "false", "not", "and", "or","main", "return", "if", "then", "else", "do",
+                "until", "while","call"};
+        for (String str: keywords1)
+        {
+            if( str.equals(sUDN))
+                return true;
+        }
+        for (String str : keywords2)
+        {
+            if (str.equals(sUDN))
+                return true;
+        }
+        return false;
     }
 
 }
