@@ -50,7 +50,21 @@ public class cParser
             return temp;
         }
         else
-            throw new Exception("Invalid input "+currentNode.getValue()+" Expected "+input);
+        {
+            switch (input)
+            {
+                case UDN:
+                    input = "a userDefinedName token";
+                    break;
+                case SS:
+                    input = "a ShortString Token";
+                    break;
+                case NUM:
+                    input = "a Number Token";
+                    break;
+            }
+            throw new Exception("Invalid token "+currentNode.matchError() +", Expected "+input);
+        }
     }
 
     private cTreeNode parse() throws Exception

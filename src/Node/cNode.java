@@ -100,5 +100,13 @@ public class cNode
      {
          m_oPrev = pNode;
      }
+
+    public String matchError()
+    {
+        return "["
+                + " value=" + this.getValue()
+                + " type=" + this.getType()
+                +" ]";
+    }
 }
 
