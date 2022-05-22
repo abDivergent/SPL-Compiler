@@ -27,13 +27,15 @@ public class cParser
         currentNode = oList.getHead();
     }
 
-    public cTreeNode start() throws Exception
+    public cTreeNode start(boolean clean, boolean prune) throws Exception
     {
         if (currentNode != null)
         {
             treeRoot = parse();
-            removeGrouping(treeRoot);
-            pruneSubTree(treeRoot);
+            if (clean)
+                removeGrouping(treeRoot);
+            if (prune)
+                pruneSubTree(treeRoot);
             return treeRoot;
         }
         else

@@ -4,8 +4,6 @@ import Node.Scope;
 import Node.cTreeNode;
 import Node.eSymbolType;
 
-import java.util.ArrayList;
-
 public class Scoping
 {
     int sIDCount=1;

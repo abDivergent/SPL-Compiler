@@ -64,13 +64,15 @@ public class Main
         {
             TestFileCreator testCeator = new TestFileCreator();
             testCeator.createToFile("src/test.txt");
+
             cLexer oLexer = new cLexer("src/test.txt");
             System.out.println("Lexing...");
             cLinkedList oList = oLexer.start();
 
             cParser parser = new cParser(oList);
             System.out.println("Parsing...");
-            cTreeNode tree = parser.start();
+            cTreeNode tree = parser.start(true, false);
+
             Scoping scoping = new Scoping(tree);
             System.out.println("Scoping...");
             scoping.start();
