@@ -1,7 +1,10 @@
 
 import Lexer.cLexer;
 import Lexer.cLinkedList;
+import Node.cTreeNode;
 import Parser.cParser;
+import Sementics.Scoping;
+import test.TestFileCreator;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,7 +21,7 @@ public class Main
         String directory = "";
         int count = 1;
 
-        while (!exit)
+/*        while (!exit)
         {
             try
             {
@@ -41,9 +44,12 @@ public class Main
 
                     cParser parser = new cParser(oList);
                     System.out.println("Parsing...");
-                    parser.start();
+                    cTreeNode tree = parser.start();
+                    Scoping scoping = new Scoping(tree);
+                    scoping.start();
 
-                    String treeString = parser.printTree();
+//                    String treeString = parser.printTree();
+                    String treeString = scoping.printTree();
 //                    System.out.println("complete\n results in "+treeString);
                     writeToFile(treeString, count++);
                 }
@@ -52,6 +58,32 @@ public class Main
                 System.out.println("Error found");
                 writeToFile(e.getMessage(), count++);
             }
+        }*/
+
+        try
+        {
+            TestFileCreator testCeator = new TestFileCreator();
+            testCeator.createToFile("src/test.txt");
+            cLexer oLexer = new cLexer("src/test.txt");
+            System.out.println("Lexing...");
+            cLinkedList oList = oLexer.start();
+
+            cParser parser = new cParser(oList);
+            System.out.println("Parsing...");
+            cTreeNode tree = parser.start();
+            Scoping scoping = new Scoping(tree);
+            System.out.println("Scoping...");
+            scoping.start();
+
+//                    String treeString = parser.printTree();
+            String treeString = scoping.printTree();
+//                    System.out.println("complete\n results in "+treeString);
+            writeToFile(treeString, count++);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Error found");
+            writeToFile(e.getMessage(), count++);
         }
     }
 
