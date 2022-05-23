@@ -76,10 +76,38 @@ public class cTreeNode
         return scope.getID();
     }
 
+    public void setParent(cTreeNode parent)
+    {
+        this.parent = parent;
+    }
+
+    public cTreeNode getParent()
+    {
+        return parent;
+    }
+
     public boolean isType(eSymbolType type)
     {
         return getValue().equals(type.name()) && getType()==null;
     }
 
 
+    public cTreeNode lastChild()
+    {
+        int i = children.size();
+        if(i>0)
+        {
+            return children.get(i-1);
+        }
+        else
+            return null;
+    }
+
+    public cTreeNode firstChild()
+    {
+        if(children.size() > 1)
+            return children.get(0);
+        else
+            return null;
+    }
 }
