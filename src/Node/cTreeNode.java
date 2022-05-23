@@ -72,5 +72,10 @@ public class cTreeNode
         return scope.getID();
     }
 
+    public boolean isType(eSymbolType type)
+    {
+        return getValue().equals(type.name()) && getType()==null;
+    }
+
 
 }
