@@ -8,7 +8,7 @@ public class cTreeNode
     public final cNode node;
     private ArrayList<cTreeNode> children;
     private final boolean isTerminal;
-
+    private cTreeNode parent;
     private Scope scope;
 
     public cTreeNode(cNode node)
@@ -17,6 +17,7 @@ public class cTreeNode
         this.isTerminal = true;
         this.children = new ArrayList<>();
         this.scope = null;
+        this.parent = null;
     }
 
     public cTreeNode(cNode node, ArrayList<cTreeNode> children)
@@ -39,7 +40,10 @@ public class cTreeNode
     public void setChildren(ArrayList<cTreeNode> childNodes)
     {
         this.children = new ArrayList<>();
-        this.children.addAll(childNodes);
+        for (cTreeNode child : childNodes)
+        {
+            child.setParent(this);
+        }
     }
 
     public String getValue()
