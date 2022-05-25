@@ -1,0 +1,23 @@
+proc a
+{
+
+    proc a1 {return; },
+    proc a2 {return; },
+    proc a3 {return; },
+    proc a4 {return; },
+
+    call a;
+    call a1;
+    call a2;
+    call a3;
+    call a4;
+
+    return ;
+},
+
+main {
+    call a;
+
+    halt;
+
+}

@@ -1,0 +1,6 @@
+ main
+ {
+    wandile := 5;
+    halt;
+    string wandile;
+}

@@ -1,0 +1,51 @@
+proc scope1recursive
+{
+    call scope1recursive;
+    return;
+},
+proc scope2childcall
+{
+    proc scope3
+    {
+        proc scope4
+        {
+            proc samename
+            {
+                call samename;
+                return;
+            },
+            return;
+        },
+        proc scope41
+        {
+            return;
+        },
+        proc scope42
+        {
+            proc samename
+            {
+                call samename;
+                return;
+            },
+            call scope42;
+            return;
+        },
+
+        proc scope43
+        {
+            return;
+        },
+        call scope3;
+        call scope4;
+        call scope41;
+        call scope43;
+        return;
+    },
+    return;
+},
+main
+{
+    call scope2childcall;
+
+    halt;
+}
