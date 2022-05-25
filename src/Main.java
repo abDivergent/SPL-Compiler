@@ -1,11 +1,10 @@
 
 import Lexer.cLexer;
 import Lexer.cLinkedList;
-import Naming.VariableAnalysis;
+import Sementics.Naming.VariableAnalysis;
 import Node.cTreeNode;
 import Parser.cParser;
 import Sementics.Scoping;
-import test.TestFileCreator;
 
 import java.io.File;
 import java.io.FileWriter;

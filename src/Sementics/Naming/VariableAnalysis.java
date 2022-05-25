@@ -1,4 +1,4 @@
-package Naming;
+package Sementics.Naming;
 
 import Node.Scope;
 import Node.cTreeNode;
@@ -148,7 +148,7 @@ public class VariableAnalysis
 
                 //  Rule:  Within any one scope, there cannot be more than one declaration for the same variable v
                 if(multipleScopeDeclaration(node))
-                    throw new Exception("[Naming Error] variable \""+name+"\" has already been declared ");
+                    throw new Exception("[Sementics.Naming Error] variable \""+name+"\" has already been declared ");
 
             }
             if(node.isType(eSymbolType.Field))
@@ -450,15 +450,15 @@ public class VariableAnalysis
                 //S1, S2, ..., Sn be the Child-scopes in C of S. Then no procedure declaration in any of S1,
                 //S2, ... Sn may have the same name u.
                 if(hasSameNameChild(node))
-                    throw new Exception("[Naming Error] a parent procedure with the name \"" +name+"\" already exists");
+                    throw new Exception("[Sementics.Naming Error] a parent procedure with the name \"" +name+"\" already exists");
 
                 // Rule: Procedure declarations in Sibling-scopes must have different names
                 if(hasSameNameSiblings(node))
-                    throw new Exception("[Naming Error] a sibling procedure with the name \""+name+"\" already exists");
+                    throw new Exception("[Sementics.Naming Error] a sibling procedure with the name \""+name+"\" already exists");
 
 
                 // if(!hasCorrespondingPCall(node))
-                //     throw new Exception("[Naming Error] procedure \""+name+"\" has no matching procedure call within range");
+                //     throw new Exception("[Sementics.Naming Error] procedure \""+name+"\" has no matching procedure call within range");
 
 
             }
@@ -479,7 +479,7 @@ public class VariableAnalysis
                     if(pd != null)
                         node.getChildren().get(1).setSemanticName(getSemanticName(pd));
                 }else
-                    throw new Exception("[Naming Error] no procedure with the name \""+name+"\" was not found within procedure calling range");
+                    throw new Exception("[Sementics.Naming Error] no procedure with the name \""+name+"\" was not found within procedure calling range");
             }
 
             for (cTreeNode child : node.getChildren())
