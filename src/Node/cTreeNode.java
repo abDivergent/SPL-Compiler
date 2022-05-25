@@ -10,6 +10,7 @@ public class cTreeNode
     private final boolean isTerminal;
     private cTreeNode parent;
     private Scope scope;
+    private String semanticName;
 
     public cTreeNode(cNode node)
     {
@@ -18,6 +19,7 @@ public class cTreeNode
         this.children = new ArrayList<>();
         this.scope = null;
         this.parent = null;
+        this.semanticName = null;
     }
 
     public cTreeNode(cNode node, ArrayList<cTreeNode> children)
@@ -26,6 +28,7 @@ public class cTreeNode
         this.isTerminal = false;
         this.setChildren(children);
         this.scope = null;
+        this.semanticName = null;
     }
 
     public boolean isTerminal()
@@ -42,6 +45,7 @@ public class cTreeNode
         this.children = new ArrayList<>();
         for (cTreeNode child : childNodes)
         {
+            this.children.add(child);
             child.setParent(this);
         }
     }
@@ -109,5 +113,15 @@ public class cTreeNode
             return children.get(0);
         else
             return null;
+    }
+
+    public String getSemanticName()
+    {
+        return semanticName;
+    }
+
+    public void setSemanticName(String semanticName)
+    {
+        this.semanticName = semanticName;
     }
 }
