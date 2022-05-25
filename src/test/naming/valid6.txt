@@ -1,8 +1,0 @@
- main
- {
-    wandile := 5;
-    wandile[10] := wandile;
-    halt;
-    string wandile;
-    arr num[10]wandile;
-}

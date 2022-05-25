@@ -1,1 +1,0 @@
-, main { call wandile halt; string wandile }
