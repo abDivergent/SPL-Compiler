@@ -8,8 +8,9 @@ public class cTreeNode
     public final cNode node;
     private ArrayList<cTreeNode> children;
     private final boolean isTerminal;
-
+    private cTreeNode parent;
     private Scope scope;
+    private String semanticName;
 
     public cTreeNode(cNode node)
     {
@@ -17,6 +18,8 @@ public class cTreeNode
         this.isTerminal = true;
         this.children = new ArrayList<>();
         this.scope = null;
+        this.parent = null;
+        this.semanticName = null;
     }
 
     public cTreeNode(cNode node, ArrayList<cTreeNode> children)
@@ -25,6 +28,7 @@ public class cTreeNode
         this.isTerminal = false;
         this.setChildren(children);
         this.scope = null;
+        this.semanticName = null;
     }
 
     public boolean isTerminal()
@@ -39,7 +43,11 @@ public class cTreeNode
     public void setChildren(ArrayList<cTreeNode> childNodes)
     {
         this.children = new ArrayList<>();
-        this.children.addAll(childNodes);
+        for (cTreeNode child : childNodes)
+        {
+            this.children.add(child);
+            child.setParent(this);
+        }
     }
 
     public String getValue()
@@ -72,5 +80,48 @@ public class cTreeNode
         return scope.getID();
     }
 
+    public void setParent(cTreeNode parent)
+    {
+        this.parent = parent;
+    }
 
+    public cTreeNode getParent()
+    {
+        return parent;
+    }
+
+    public boolean isType(eSymbolType type)
+    {
+        return getValue().equals(type.name()) && getType()==null;
+    }
+
+
+    public cTreeNode lastChild()
+    {
+        int i = children.size();
+        if(i>0)
+        {
+            return children.get(i-1);
+        }
+        else
+            return null;
+    }
+
+    public cTreeNode firstChild()
+    {
+        if(children.size() > 0)
+            return children.get(0);
+        else
+            return null;
+    }
+
+    public String getSemanticName()
+    {
+        return semanticName;
+    }
+
+    public void setSemanticName(String semanticName)
+    {
+        this.semanticName = semanticName;
+    }
 }

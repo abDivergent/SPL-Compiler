@@ -1,6 +1,7 @@
 
 import Lexer.cLexer;
 import Lexer.cLinkedList;
+import Naming.VariableAnalysis;
 import Node.cTreeNode;
 import Parser.cParser;
 import Sementics.Scoping;
@@ -62,28 +63,38 @@ public class Main
 
         try
         {
-            TestFileCreator testCeator = new TestFileCreator();
-            testCeator.createToFile("src/test.txt");
-            cLexer oLexer = new cLexer("src/test.txt");
+//            TestFileCreator testCeator = new TestFileCreator();
+//            testCeator.createToFile("src/test.txt");
+
+            cLexer oLexer = new cLexer("src/test/naming/valid9.txt");
             System.out.println("Lexing...");
             cLinkedList oList = oLexer.start();
 
             cParser parser = new cParser(oList);
             System.out.println("Parsing...");
-            cTreeNode tree = parser.start();
-            Scoping scoping = new Scoping(tree);
-            System.out.println("Scoping...");
-            scoping.start();
+            cTreeNode parsedTree = parser.start(true, false);
+            String treeString = parser.printTree();
+            writeToFile(treeString, count++);
 
-//                    String treeString = parser.printTree();
-            String treeString = scoping.printTree();
-//                    System.out.println("complete\n results in "+treeString);
+            Scoping scoping = new Scoping(parsedTree);
+            System.out.println("Scoping...");
+            cTreeNode scopedTree = scoping.start();
+            treeString = scoping.printTree();
+            writeToFile(treeString, count++);
+
+            VariableAnalysis varAnalysis = new VariableAnalysis(scopedTree);
+            System.out.println("naming...");
+            cTreeNode namedTree = varAnalysis.start();
+            treeString = varAnalysis.printTree();
             writeToFile(treeString, count++);
         }
         catch (Exception e)
         {
             System.out.println("Error found");
-            writeToFile(e.getMessage(), count++);
+            if(e.getMessage() == null)
+                e.printStackTrace();
+            else
+                writeToFile(e.getMessage(), count++);
         }
     }
 

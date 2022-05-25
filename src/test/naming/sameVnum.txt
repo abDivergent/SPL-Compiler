@@ -1,0 +1,17 @@
+ proc scope1
+ {
+    call scope1;
+    same0vnum := "FIVE";
+    return;
+ },
+ main
+ {
+
+    wandile1 := 5;
+    simp[10] := wandile1;
+    same0vnum := 0;
+    halt;
+    string wandile1;
+    arr num[10]simp;
+    num same0vnum;
+}

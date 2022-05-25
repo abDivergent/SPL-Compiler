@@ -1,0 +1,31 @@
+proc scope1recursive
+{
+    call scope1recursive;
+    return;
+},
+proc scope2childcall
+{
+    proc scope3recursivecall
+    {
+        proc scope4error
+        {
+            proc scope4error1
+            {
+                call scope4error1;
+                return;
+            },
+            return;
+        },
+        call scope4error;
+        call scope4error;
+        call scope3recursivecall;
+        return;
+    },
+    return;
+},
+main
+{
+    call scope2childcall;
+
+    halt;
+}

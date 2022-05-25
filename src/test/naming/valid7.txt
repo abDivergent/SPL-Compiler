@@ -1,0 +1,20 @@
+ proc scope1
+ {
+     proc scope2
+     {
+        call scope2;
+        parent0declaration := 5;
+        return;
+     },
+     call scope1;
+     return;
+     string parent0declaration;
+ },
+ main
+ {
+    wandile1 := 5;
+    simp[10] := wandile1;
+    halt;
+    string wandile1;
+    arr num[10]simp;
+}
