@@ -1,8 +1,7 @@
 package Node;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
 
 public class Scope
 {
@@ -25,13 +24,10 @@ public class Scope
         this.childScopes = new ArrayList<>();
     }
 
-    public Scope(Scope parentScope, int i)
+    public Scope(String scopeID)
     {
-        this.scopeID = parentScope.getID()+"."+i;
-        this.parentScope = parentScope;
+        this.scopeID = scopeID;
         this.childScopes = new ArrayList<>();
-
-        parentScope.addChildScope(this);
     }
 
     @Override
@@ -67,8 +63,13 @@ public class Scope
 
     public void addChildScope(Scope scope)
     {
+        scope.setParentScope(this);
         this.childScopes.add(scope);
     }
 
+    public void setParentScope(Scope scope)
+    {
+        this.parentScope = scope;
+    }
 
 }
