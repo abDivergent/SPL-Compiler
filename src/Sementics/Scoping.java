@@ -20,24 +20,28 @@ public class Scoping
         if(treeRoot != null){
             if(treeRoot.getValue().equals(eSymbolType.SPL.name()) && !treeRoot.isTerminal() )
             {
-                Scope scope = new Scope("0", null );
+                Scope scope = new Scope( );
                 treeRoot.setScope(scope);
                 for (cTreeNode child: treeRoot.getChildren())
                 {
                     subTreeScope(child, scope);
                 }
+                return treeRoot;
             }
         }
-        else
-            throw new Exception("root node is not SPL");
-        return treeRoot;
+        throw new Exception("root node is not SPL");
+
     }
 
     private void subTreeScope(cTreeNode parent, Scope parentScope)
     {
         Scope scope = parentScope;
         if (parent.getValue().equals(eSymbolType.PD.name()) && !parent.isTerminal())
-            scope = new Scope(parentScope, sIDCount++);
+        {
+            scope = new Scope(scope.getID()+"."+sIDCount++);
+            parentScope.addChildScope(scope);
+            scope.setParentScope(parentScope);
+        }
 
         parent.setScope(scope);
 
