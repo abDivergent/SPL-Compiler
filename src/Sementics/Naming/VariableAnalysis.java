@@ -633,11 +633,11 @@ public class VariableAnalysis
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public String printTree()
+    public String printTree(cTreeNode treeNode)
     {
-        if(treeRoot != null)
+        if(treeNode != null)
         {
-            return printSubTree(treeRoot, "", 0);
+            return printSubTree(treeNode, "", 0);
         }
         return "tree root is null";
     }
@@ -647,8 +647,7 @@ public class VariableAnalysis
         String displayName = "";
         if(treeNode.getSemanticName() != null )
             displayName = ", vNum="+ treeNode.getSemanticName();
-        String treeString = tabs +treeNode.getValue()+ "   [scope="+treeNode.getScopeID()+displayName +
-                "]\n";
+        String treeString = tabs +treeNode.getValue()+ "\n";
         tabs += treeNode.getChildren().size() > 1 ? "   |" : "    ";
         int i = 1;
         for (cTreeNode child : treeNode.getChildren())
@@ -657,5 +656,44 @@ public class VariableAnalysis
         }
         return treeString;
     }
+
+//    private void removeGrouping(cTreeNode node)
+//    {
+//        if(node != null)
+//        {
+//            boolean changed = true;
+//            ArrayList<cTreeNode> newChildren = new ArrayList<>();
+//            for (int i = 0; i < node.getChildren().size(); i++)
+//            {
+//                if(node.getChildren().get(i) != null)
+//                {
+//                    if (!isRemovable(node.getChildren().get(i)))
+//                    {
+//                        newChildren.add(node.getChildren().get(i));
+//                    }
+//                }
+//            }
+//
+//            newChildren.trimToSize();
+//            node.setChildren(newChildren);
+//            for (int i = 0; i < node.getChildren().size(); i++)
+//            {
+//                removeGrouping(node.getChildren().get(i));
+//            }
+//        }
+//    }
+//
+//    private boolean isRemovable(cTreeNode node)
+//    {
+//        String[] removableSymbol = {"{", "}", "(", ")", ";" , ",", "[", "]", ":=", "main", "halt", "proc", "return",
+//                "if","then", "else", "do", "while", "until", "output", "call","not", "and", "or","eq", "larger","add", "sub", "mult"};
+//        for (String s : removableSymbol)
+//        {
+//            if (node.node.getValue().equals(s))
+//                return true;
+//        }
+//        return false;
+//    }
+
 
 }

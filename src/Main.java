@@ -1,10 +1,12 @@
 
 import Lexer.cLexer;
 import Lexer.cLinkedList;
+import Sementics.Naming.TypeChecking;
 import Sementics.Naming.VariableAnalysis;
 import Node.cTreeNode;
 import Parser.cParser;
 import Sementics.Scoping;
+import test.TestFileCreator;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -21,7 +23,7 @@ public class Main
         String directory = "";
         int count = 1;
 
-/*        while (!exit)
+        while (!exit)
         {
             try
             {
@@ -37,41 +39,51 @@ public class Main
                 }
                 else
                 {
-
                     cLexer oLexer = new cLexer(directory);
-                    System.out.println("Lexing...");
                     cLinkedList oList = oLexer.start();
 
                     cParser parser = new cParser(oList);
-                    System.out.println("Parsing...");
                     cTreeNode tree = parser.start();
-                    Scoping scoping = new Scoping(tree);
-                    scoping.start();
 
-//                    String treeString = parser.printTree();
-                    String treeString = scoping.printTree();
-//                    System.out.println("complete\n results in "+treeString);
+                    Scoping scoping = new Scoping(tree);
+                    tree =  scoping.start();
+
+                    VariableAnalysis varAnalysis = new VariableAnalysis(tree);
+                    cTreeNode namedTree = varAnalysis.start();
+
+                    cTreeNode prunedTree = parser.pruneTree(namedTree);
+
+                    TypeChecking tc = new TypeChecking(prunedTree);
+                    cTreeNode typeChecked = tc.start();
+
+                    String treeString = tc.printTree(typeChecked);
+
+                    File file = new File(directory);
+                    if(file.getName().contains("invalid") || file.getName().contains("error"))
+                        throw new Exception("[Unexpected Error] an unexpected error has occurred");
+
                     writeToFile(treeString, count++);
+
                 }
             } catch (Exception e)
             {
                 System.out.println("Error found");
                 writeToFile(e.getMessage(), count++);
             }
-        }*/
+        }
 
-        try
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*        try
         {
-//            TestFileCreator testCeator = new TestFileCreator();
-//            testCeator.createToFile("src/test.txt");
+            TestFileCreator testCreator = new TestFileCreator();
+            testCreator.createToFile("src/test.txt");
 
-            cLexer oLexer = new cLexer("src/test/naming/valid9.txt");
-            System.out.println("Lexing...");
+            cLexer oLexer = new cLexer("src/test/naming/invalid16.txt");
             cLinkedList oList = oLexer.start();
 
             cParser parser = new cParser(oList);
             System.out.println("Parsing...");
-            cTreeNode parsedTree = parser.start(true, false);
+            cTreeNode parsedTree = parser.start();
             String treeString = parser.printTree();
             writeToFile(treeString, count++);
 
@@ -84,7 +96,15 @@ public class Main
             VariableAnalysis varAnalysis = new VariableAnalysis(scopedTree);
             System.out.println("naming...");
             cTreeNode namedTree = varAnalysis.start();
-            treeString = varAnalysis.printTree();
+
+            cTreeNode prunedTree = parser.pruneTree(namedTree);
+            treeString = varAnalysis.printTree(prunedTree);
+            writeToFile(treeString, count++);
+
+            TypeChecking tc = new TypeChecking(prunedTree);
+            System.out.println("type checking...");
+            cTreeNode typeChecked = tc.start();
+            treeString = tc.printTree(typeChecked);
             writeToFile(treeString, count++);
         }
         catch (Exception e)
@@ -94,7 +114,7 @@ public class Main
                 e.printStackTrace();
             else
                 writeToFile(e.getMessage(), count++);
-        }
+        }*/
     }
 
     private static void writeToFile(String str, int i)

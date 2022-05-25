@@ -11,6 +11,8 @@ public class cTreeNode
     private cTreeNode parent;
     private Scope scope;
     private String semanticName;
+    private String vType = "U";
+    private String vSubType ="";
 
     public cTreeNode(cNode node)
     {
@@ -40,6 +42,7 @@ public class cTreeNode
     {
         return this.children;
     }
+
     public void setChildren(ArrayList<cTreeNode> childNodes)
     {
         this.children = new ArrayList<>();
@@ -95,7 +98,6 @@ public class cTreeNode
         return getValue().equals(type.name()) && getType()==null;
     }
 
-
     public cTreeNode lastChild()
     {
         int i = children.size();
@@ -123,5 +125,35 @@ public class cTreeNode
     public void setSemanticName(String semanticName)
     {
         this.semanticName = semanticName;
+    }
+
+    public String vType()
+    {
+        return vType;
+    }
+
+    public void vType(String vType)
+    {
+        this.vType = vType;
+    }
+
+    public String vSubType()
+    {
+        return vSubType;
+    }
+
+    public void vSubType(String vSubType)
+    {
+        this.vSubType = vSubType;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "cTreeNode{" +
+                "value="+getValue()+
+                ", semanticName='" + semanticName + '\'' +
+                ", vType='" + vType + '\'' +
+                '}';
     }
 }

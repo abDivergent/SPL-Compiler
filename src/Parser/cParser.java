@@ -27,15 +27,13 @@ public class cParser
         currentNode = oList.getHead();
     }
 
-    public cTreeNode start(boolean clean, boolean prune) throws Exception
+    public cTreeNode start() throws Exception
     {
         if (currentNode != null)
         {
             treeRoot = parse();
-            if (clean)
-                removeGrouping(treeRoot);
-            if (prune)
-                pruneSubTree(treeRoot);
+
+            removeGrouping(treeRoot);
             return treeRoot;
         }
         else
@@ -753,9 +751,16 @@ public class cParser
                 for (int i = 0; i < parent.getChildren().size(); i++)
                 {
                     cTreeNode node = parent.getChildren().get(i);
-                    if (node.getChildren().size() == 1 && node.getChildren().get(0).getChildren().size()  <= 1)
+                    if (node.getChildren().size() == 1 && node.firstChild().getChildren().size()  <= 1)
                     {
-                        parent.getChildren().add(i, node.getChildren().get(0));
+                        parent.getChildren().add(i, node.firstChild());
+                        parent.getChildren().remove(node);
+                        parent.getChildren().trimToSize();
+                        changed = true;
+                    } else if(!node.isTerminal() && node.getChildren().size() <= 1)
+                    {
+                        if(node.getChildren().size() == 1)
+                            parent.getChildren().add(i, node.firstChild());
                         parent.getChildren().remove(node);
                         parent.getChildren().trimToSize();
                         changed = true;
@@ -772,6 +777,13 @@ public class cParser
                 }
             }
         }
+    }
+
+    public cTreeNode pruneTree(cTreeNode node)
+    {
+        if(node != null)
+            pruneSubTree(node);
+        return node;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
