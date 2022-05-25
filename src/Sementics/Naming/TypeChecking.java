@@ -296,9 +296,10 @@ public class TypeChecking
 
     private String printSubTree(cTreeNode treeNode, String tabs)
     {
-        String displayName = "";
-        if(treeNode.vType() != null )
-            displayName = ", vType="+ treeNode.vType();
+        String displayName = "   [";
+        if(treeNode.getSemanticName() != null )
+            displayName += "vNum="+ treeNode.getSemanticName()+", ";
+        displayName += "Scope="+treeNode.getScopeID()+"]";
         String treeString = tabs +treeNode.getValue()+ displayName + "\n";
 
         tabs += treeNode.getChildren().size() > 1 ? "   |" : "    ";
