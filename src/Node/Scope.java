@@ -10,17 +10,10 @@ public class Scope
     private ArrayList<Scope> childScopes;
 
 
-    public Scope(String scope, Scope parentScope, List<Scope> childScopes)
+    public Scope()
     {
-        this.scopeID = scope;
-        this.parentScope = parentScope;
-        setChildScopes((ArrayList<Scope>) childScopes);
-    }
-
-    public Scope(String scope, Scope parentScope)
-    {
-        this.scopeID = scope;
-        this.parentScope = parentScope;
+        this.scopeID = "0";
+        this.parentScope = null;
         this.childScopes = new ArrayList<>();
     }
 
