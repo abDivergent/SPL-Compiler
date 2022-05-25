@@ -26,11 +26,15 @@ public class Scope
     @Override
     public String toString()
     {
-        return "Scope {" +
-                ' ' + scopeID +
-                ',' + parentScope +
-                ',' + Arrays.toString(childScopes.toArray()) +
-                '}';
+        String scope = "Scope{"+scopeID +",";
+        scope += parentScope == null ? "null" : parentScope.getID();
+        scope +=",[";
+        for (Scope child : childScopes)
+        {
+            scope += child.getID() +",";
+        }
+        scope +="]}";
+        return scope;
     }
 
     public String getID()
