@@ -158,24 +158,31 @@ public class cParser
     private cTreeNode parseVar() throws Exception
     {
         if (isFirst(eSymbolType.Var, currentNode))
-            return match(UDN);
+        {
+            return new cTreeNode(new cNode(eSymbolType.Var.name(), null), new ArrayList<cTreeNode>(){{add(match(UDN));}});
+        }
         else
             throw new Exception("[Parse Error] Var has no action for "+currentNode);
     }
 
     private cTreeNode parseTYP() throws Exception
     {
+        ArrayList<cTreeNode> children = new ArrayList<>();
         switch (currentNode.getValue())
         {
             case "num":
-                return match("num");
+                children.add(match("num"));
+                break;
             case "bool":
-                return match("bool");
+                children.add(match("bool"));
+                break;
             case "string":
-                return match("string");
+                children.add(match("string"));
+                break;
             default:
                 throw new Exception("[Parse Error] TYP has no action for "+currentNode);
         }
+        return new cTreeNode(new cNode(eSymbolType.TYP.name(), null), children);
     }
 
     private cTreeNode parseAlg() throws Exception
