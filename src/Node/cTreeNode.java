@@ -109,7 +109,7 @@ public class cTreeNode
 
     public cTreeNode firstChild()
     {
-        if(children.size() > 1)
+        if(children.size() > 0)
             return children.get(0);
         else
             return null;
