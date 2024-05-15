@@ -8,6 +8,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+/**
+ * I will assume the Lexer is simple enough to implement and I will nto comment much.
+ * I am not sure how good this lexer is. If you need me to check I just hala at me.
+ * You do not have to use the same method i am using here, as long as the return value is a cLinkedList
+ *
+ */
 public class cLexer
 {
     private final cLinkedList oList;
@@ -44,11 +50,20 @@ public class cLexer
                 throw new Exception(message);
             }else
             {
-                if (c == '"')
+                if (c == '"')   //TODO instead of listing all characters here manually, and risk making mistakes use the
+                                // isStartOf(enum, char) function to test if the character is a start symbol for
+                                // a specific non-Terminal
                 {
                     // Short String
                     // System.out.println("+ short String");
-                    shortString(oBufferReader, c);
+                    shortString(oBufferReader, c);          //TODO you do not have to pass in the BufferedReader to each
+                                                            // function as long as it is a class member
+
+                                                            //TODO give each method a name related to the nonTerminal it
+                                                            // is lexing, makes it easier to track
+
+                                                            //TODO This implementation stop lexing when an invalid token
+                                                            // is read or the string is not part of the SPL language
                 }
                 else if( (c >= 'a') && (c <= 'z'))
                 {

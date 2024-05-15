@@ -3,6 +3,12 @@ package Node;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The cTreeNode holds a cNode. I think i made it like this because i did not want to break the linked list made by the
+ *  lexer.
+ *
+ *  This node is created for the parse tree by the parser
+ */
 public class cTreeNode
 {
     public final cNode node;

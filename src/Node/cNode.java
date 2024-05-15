@@ -1,5 +1,11 @@
 package Node;
 
+/**
+ * this node holds the tokens created by the lexer
+ *
+ * the tokens are also given a type and subtype (eNodeType, eNodeSubType)
+ *
+ */
 public class cNode
 {
     static int m_iNumNodes =0;

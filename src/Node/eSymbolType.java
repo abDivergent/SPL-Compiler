@@ -1,5 +1,8 @@
 package Node;
 
+/**
+ * This enum defines the list of nonTernimal symbols and also identifies a terminal symbol
+ */
 public enum eSymbolType
 {
     SPL,

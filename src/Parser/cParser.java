@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ *
+ */
 public class cParser
 {
     final String UDN = "-UDN";
@@ -23,7 +26,7 @@ public class cParser
 
     public cParser(cLinkedList oList)
     {
-        oList.add(new cNode("$", eNodeType.EOC));
+        oList.add(new cNode("$", eNodeType.EOC)); //TODO this is so that i know i have reached the end of the linked list successfully
         currentNode = oList.getHead();
     }
 
@@ -32,6 +35,8 @@ public class cParser
         if (currentNode != null)
         {
             treeRoot = parse();
+            //TODO These two if statement were my attempt at pruning a tree
+            // can't say if it is correct or not.
             if (clean)
                 removeGrouping(treeRoot);
             if (prune)
@@ -76,12 +81,12 @@ public class cParser
         ArrayList<cTreeNode> children = new ArrayList<>();
         if(currentNode != null)
         {
-            if(isFirst(eSymbolType.SPL, currentNode))
+            if(isFirst(eSymbolType.SPL, currentNode))    // check if currentNode (current token) is within the starting set of SPL (use enum to avoid spelling errors)
             {
                 cTreeNode temp = parseSPL();
                 match("$");
                 return temp;
-            }else if (currentNode.getValue().equals("$"))
+            }else if (currentNode.getValue().equals("$")) // an empty file will only have '$' added in the cParser constructor. Add this only if aan empty file is valid
             {
                 match("$");
                 return null;
@@ -547,6 +552,8 @@ public class cParser
     }
 
 
+    //TODO  TRUE if the token in the cNode object is a start symbol of the eSymbolType (non Terminal) object
+    // else FALSE
     private boolean isFirst(eSymbolType type, cNode node)
     {
         ArrayList<String> list = first(type);
@@ -569,6 +576,7 @@ public class cParser
         return false;
     }
 
+    //TODO returns a list of starting symbols for a given eSymbolType (non Terminal)
     private ArrayList<String> first(eSymbolType type)
     {
         ArrayList<String> list = new ArrayList<>();
@@ -777,6 +785,7 @@ public class cParser
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //................................................. DEPRECATED
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
     private ArrayList<String> follow(eSymbolType type)
     {
         ArrayList<String> list = new ArrayList<>();
@@ -810,8 +819,9 @@ public class cParser
 
         return list;
     }
+*/
 
-    private boolean isFollow(eSymbolType type, cNode node)
+/*    private boolean isFollow(eSymbolType type, cNode node)
     {
         ArrayList<String> list = follow(type);
         switch (node.getType())
@@ -828,6 +838,6 @@ public class cParser
                 LOGGER.log(Level.WARNING, "unexpect error at isFollow() : "+node);
         }
         return false;
-    }
+    }*/
 
 }

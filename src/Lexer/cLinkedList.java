@@ -4,6 +4,11 @@ import Node.cNode;
 import Node.eNodeSubType;
 import Node.eNodeType;
 
+/**
+ * This class just defines the linked list that uses a #cNode as base
+ *
+ * TODO There is also code to add a node here used by the #cLexer.java
+ */
 public class cLinkedList
 {
     private cNode m_oHead;
